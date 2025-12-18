@@ -131,6 +131,11 @@ fn parse_arg(cur_arg: &mut u8, arg: &str) {
                                                        eprintln!("invalid snow speed");
                                                        process::exit(2);}))); // this is ass, i won't fix it
         }
+        else {
+            let arg: &str = &arg[i..=i];
+            eprintln!("invalid arg {}", arg);
+            process::exit(2);
+        }
         i += 1;
     }
 }
