@@ -10,7 +10,7 @@ use rand::Rng;
 use terminal_size::{Width, Height, terminal_size};
 
 
-thread_local!(
+thread_local!( //global mut vars
     static SNOW_STYLE: Cell<u8> = Cell::new(0);
     static SNOW_INTEN: Cell<u8> = Cell::new(2);
     static SNOW_SPEED: Cell<Duration> = Cell::new(time::Duration::from_millis(100));
@@ -101,35 +101,39 @@ fn parse_arg(cur_arg: &mut u8, arg: &str) {
     }
     let mut i: usize = 1;
     while i < arg.len() {
-        if arg[i..=i] == *"c" {
+        if arg[i..=i] == *"c" { // if -c clear screen
             println!("\x1b[2J");
         }
 
-        else if arg[i..=i] == *"a" {
+        else if arg[i..=i] == *"a" { // if -a set snow accum
             SNOW_STYLE.set(1);
         }
-        else if arg[i..=i] == *"m" {
+        else if arg[i..=i] == *"m" { // if -m set melt
             SNOW_STYLE.set(2);
             if i + 1 == arg.len() {*cur_arg = 1; break;} // if current char is end of arg, check for num in next
             let num: &str = &arg[i + 1..];
-            SNOW_MELT.set(num.parse().unwrap_or(SNOW_MELT.get())); // try to convert rest of arg to a number for -m
-                           
+            if let Ok(n) = num.parse::<u16>() { // try to convert rest of arg to num for melt
+                SNOW_MELT.set(n);
+                break;
+            }
         }
-        else if arg[i..=i] == *"i" {
+        else if arg[i..=i] == *"i" { // if -i set intensity
             if i + 1 == arg.len() {*cur_arg = 2; break;} // if current char is end of arg, check for number in next
             let num: &str = &arg[i + 1..];
             SNOW_INTEN.set(num.parse() // try to convert rest of arg to a number for -i
                            .unwrap_or_else(|_| {
                            eprintln!("invalid snow intensity");
                            process::exit(2);}));
+            break;
         }
-        else if arg[i..=i] == *"s" {
+        else if arg[i..=i] == *"s" { // if -s set speed
             if i + 1 == arg.len() {*cur_arg = 3; break;} // if current char is end of arg, check for num in next
             let num: &str = &arg[i + 1..];
             SNOW_SPEED.set(time::Duration::from_millis(num.parse() // try to convert rest of arg to a number for -s
                                                        .unwrap_or_else(|_| {
                                                        eprintln!("invalid snow speed");
                                                        process::exit(2);}))); // this is ass, i won't fix it
+            break;
         }
         else {
             let arg: &str = &arg[i..=i];
